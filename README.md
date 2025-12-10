@@ -11,7 +11,7 @@ git init
 git add .
 git commit -m "init"
 # 在 GitHub 创建仓库后
-git remote add origin https://github.com/你的用户名/clipboard-share.git
+git remote add origin https://github.com/Xiaozhang22/clipboard-share.git
 git push -u origin main
 ```
 
