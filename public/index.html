@@ -10,32 +10,51 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
     }
     .container {
-      background: white;
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 800px;
+      margin: 0 auto;
     }
     h1 {
       text-align: center;
-      color: #333;
+      color: white;
       margin-bottom: 24px;
-      font-size: 24px;
+      font-size: 28px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .slots {
+      display: grid;
+      gap: 16px;
+    }
+    .slot {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .slot-title {
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+    .slot-status {
+      font-size: 12px;
+      color: #888;
     }
     textarea {
       width: 100%;
-      height: 200px;
+      height: 100px;
       border: 2px solid #e0e0e0;
       border-radius: 8px;
       padding: 12px;
-      font-size: 16px;
+      font-size: 14px;
       resize: vertical;
       transition: border-color 0.3s;
     }
@@ -45,111 +64,45 @@
     }
     .btn-group {
       display: flex;
-      gap: 12px;
-      margin-top: 16px;
+      gap: 8px;
+      margin-top: 12px;
     }
     button {
       flex: 1;
-      padding: 14px 20px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 6px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s, opacity 0.2s;
     }
-    button:hover { transform: translateY(-2px); }
+    button:hover { transform: translateY(-1px); opacity: 0.9; }
     button:active { transform: translateY(0); }
     .btn-save { background: #667eea; color: white; }
     .btn-load { background: #28a745; color: white; }
     .btn-copy { background: #17a2b8; color: white; }
     .btn-clear { background: #dc3545; color: white; }
-    .status {
-      text-align: center;
-      margin-top: 16px;
-      padding: 10px;
-      border-radius: 6px;
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
       font-size: 14px;
-      display: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
     }
-    .status.success { display: block; background: #d4edda; color: #155724; }
-    .status.error { display: block; background: #f8d7da; color: #721c24; }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>📋 剪贴板中转站</h1>
-    <textarea id="content" placeholder="在这里输入或粘贴文本..."></textarea>
-    <div class="btn-group">
-      <button class="btn-save" onclick="saveContent()">保存</button>
-      <button class="btn-load" onclick="loadContent()">读取</button>
-    </div>
-    <div class="btn-group">
-      <button class="btn-copy" onclick="copyContent()">复制</button>
-      <button class="btn-clear" onclick="clearContent()">清空</button>
-    </div>
-    <div id="status" class="status"></div>
+    <div class="slots" id="slots"></div>
   </div>
-
-  <script>
-    const textarea = document.getElementById('content');
-    const status = document.getElementById('status');
-
-    function showStatus(msg, isError = false) {
-      status.textContent = msg;
-      status.className = 'status ' + (isError ? 'error' : 'success');
-      setTimeout(() => status.className = 'status', 3000);
-    }
-
-    async function saveContent() {
-      const content = textarea.value;
-      if (!content.trim()) {
-        showStatus('内容不能为空', true);
-        return;
-      }
-      try {
-        const res = await fetch('/api/clipboard', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content })
-        });
-        if (res.ok) showStatus('保存成功！');
-        else throw new Error();
-      } catch {
-        showStatus('保存失败，请重试', true);
-      }
-    }
-
-    async function loadContent() {
-      try {
-        const res = await fetch('/api/clipboard');
-        if (res.ok) {
-          const data = await res.json();
-          textarea.value = data.content || '';
-          showStatus('读取成功！');
-        } else throw new Error();
-      } catch {
-        showStatus('读取失败，请重试', true);
-      }
-    }
-
-    function copyContent() {
-      if (!textarea.value) {
-        showStatus('没有内容可复制', true);
-        return;
-      }
-      navigator.clipboard.writeText(textarea.value)
-        .then(() => showStatus('已复制到剪贴板！'))
-        .catch(() => showStatus('复制失败', true));
-    }
-
-    function clearContent() {
-      textarea.value = '';
-      showStatus('已清空');
-    }
-
-    // 页面加载时自动读取
-    loadContent();
-  </script>
-</body>
-</html>
+  <div class="toast" id="toast"></div>
